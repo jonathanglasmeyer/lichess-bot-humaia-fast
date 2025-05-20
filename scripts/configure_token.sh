@@ -84,8 +84,40 @@ if [ -z "$LC0_PATH" ]; then
     fi
 fi
 
-# Erstelle temporäre Konfigurationsdatei mit ersetztem Pfad
-cat config_base.yml | sed "s|__LC0_PATH__|$LC0_PATH|g" > config_base_temp.yml
+# Automatische Erkennung des lc0-Backends
+echo -e "${YELLOW}Erkenne lc0-Backend für diese Plattform...${NC}"
+LC0_BACKEND=""
+
+# Betriebssystem erkennen
+OS_TYPE=$(uname -s)
+if [[ "$OS_TYPE" == "Darwin" ]]; then
+    # macOS verwendet Metal
+    LC0_BACKEND="metal"
+    echo -e "${GREEN}macOS erkannt: Verwende 'metal' Backend${NC}"
+else
+    # Linux (Ubuntu) verwendet BLAS oder OpenCL, je nach Verfügbarkeit
+    if [ -d "/usr/include/openblas" ] || [ -d "/usr/local/include/openblas" ]; then
+        LC0_BACKEND="blas"
+        echo -e "${GREEN}Linux mit OpenBLAS erkannt: Verwende 'blas' Backend${NC}"
+    elif [ -d "/usr/include/CL" ] || [ -d "/usr/local/include/CL" ]; then
+        LC0_BACKEND="opencl"
+        echo -e "${GREEN}Linux mit OpenCL erkannt: Verwende 'opencl' Backend${NC}"
+    else
+        # Fallback auf BLAS
+        LC0_BACKEND="blas"
+        echo -e "${YELLOW}Konnte kein spezifisches Backend erkennen: Verwende 'blas' als Standard${NC}"
+    fi
+fi
+
+# Benutzer kann das Backend überschreiben, wenn gewünscht
+read -p "Backend für lc0 [$LC0_BACKEND]: " USER_BACKEND
+if [ -n "$USER_BACKEND" ]; then
+    LC0_BACKEND="$USER_BACKEND"
+    echo -e "${GREEN}Backend auf '$LC0_BACKEND' gesetzt${NC}"
+fi
+
+# Erstelle temporäre Konfigurationsdatei mit ersetzten Platzhaltern
+cat config_base.yml | sed "s|__LC0_PATH__|$LC0_PATH|g" | sed "s|__LC0_BACKEND__|$LC0_BACKEND|g" > config_base_temp.yml
 
 # config_token.yml und die modifizierte config_base.yml zusammenführen
 cat config_token.yml config_base_temp.yml > config.yml

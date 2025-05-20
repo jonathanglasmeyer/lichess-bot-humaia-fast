@@ -21,7 +21,7 @@ engine:
     NNCacheSize: 0               # Kein Netz-Cache – jede Stellung neu berechnen
     MaxPrefetch: 0               # Keine Vorab-Berechnung möglicher Stellungen
     MinibatchSize: 1             # Immer nur eine Stellung gleichzeitig evaluieren
-    Backend: "metal"             # macOS-spezifisch – für Ubuntu z.B. "blas" oder "opencl" verwenden
+    Backend: "__LC0_BACKEND__"    # Wird automatisch durch configure_token.sh ersetzt
     SmartPruningFactor: 0        # Pruning deaktiviert – alle Züge gleichberechtigt geprüft
 
     # Monte Carlo Tree Search (irrelevant bei nodes=1, aber vollständig)
