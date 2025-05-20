@@ -17,8 +17,8 @@ sudo apt-get install -y git
 sudo apt-get install -y cmake g++ build-essential libstdc++6 zlib1g-dev
 
 # Set up Python virtual environment
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv venv_new
+source venv_new/bin/activate
 
 # Install Python dependencies
 pip install -r requirements.txt

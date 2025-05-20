@@ -21,8 +21,8 @@ echo "Installing Leela Chess Zero (lc0)..."
 brew install lc0
 
 # Set up Python virtual environment
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv venv_new
+source venv_new/bin/activate
 
 # Install Python dependencies
 pip install -r requirements.txt

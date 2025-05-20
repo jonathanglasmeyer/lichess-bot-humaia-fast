@@ -5,7 +5,7 @@
 cd "$(dirname "$0")/.." || exit
 
 # Activate virtual environment
-source venv/bin/activate
+source venv_new/bin/activate
 
 # Check if lc0 is installed and in PATH
 if ! command -v lc0 &> /dev/null; then
@@ -23,7 +23,7 @@ fi
 
 # Start the bot
 echo "Starting lichess-bot with Maia-1400..."
-python lichess-bot.py
+python3 lichess-bot.py
 
 # If the bot crashes, this will execute
 echo "Bot has stopped. Check logs for details."
