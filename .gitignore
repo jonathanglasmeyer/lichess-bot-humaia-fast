@@ -9,5 +9,7 @@ lichess_bot_auto_logs/*
 .vs/*
 *.pgn
 *.log
+# Textdateien ausschließen, aber requirements.txt zulassen
 *.txt
+!requirements.txt
 TEMP/*
