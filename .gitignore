@@ -1,4 +1,6 @@
+# YAML-Dateien ausschließen, aber config_base.yml zulassen
 *.yml
+!config_base.yml
 **/__pycache__
 /engines/*
 !/engines/README.md

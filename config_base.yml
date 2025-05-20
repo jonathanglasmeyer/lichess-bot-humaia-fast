@@ -1,0 +1,80 @@
+# Basis-Konfiguration für Maia-1400 Lichess-Bot
+# Die token-Konfiguration wird in einer separaten Datei gehalten: config_token.yml
+
+url: "https://lichess.org/"
+
+engine:
+  dir: "/opt/homebrew/bin" # Für Ubuntu: Pfad entsprechend anpassen, z.B. "/usr/bin" oder "/usr/local/bin" 
+  name: "lc0"
+  working_dir: "./"  # Relativ zum Repository-Wurzelverzeichnis
+  protocol: "uci"
+  ponder: false
+  engine_options:
+    show-hidden: null
+    logfile: null
+
+  uci_options:
+    WeightsFile: "./engines/lc0-weights/maia-1400.pb.gz"
+    LogFile: "./logs/lc0-debug.log"
+    Threads: 1                   # Nur ein Thread nötig – keine Suche bei nodes=1
+    TaskWorkers: 1               # Keine parallele Vorberechnung
+    NNCacheSize: 0               # Kein Netz-Cache – jede Stellung neu berechnen
+    MaxPrefetch: 0               # Keine Vorab-Berechnung möglicher Stellungen
+    MinibatchSize: 1             # Immer nur eine Stellung gleichzeitig evaluieren
+    Backend: "metal"             # macOS-spezifisch – für Ubuntu z.B. "blas" oder "opencl" verwenden
+    SmartPruningFactor: 0        # Pruning deaktiviert – alle Züge gleichberechtigt geprüft
+
+    # Monte Carlo Tree Search (irrelevant bei nodes=1, aber vollständig)
+    CPuct: 1.745
+    CPuctBase: 38739
+    CPuctFactor: 3.894
+
+    # --- Temperatursteuerung (Spielstil) ---
+    PolicyTemperature: 1         # Lässt Policy-Verteilung unangetastet (vom Netz direkt)
+                                # < 1 → macht Policy spitzer (mehr Top-Züge), > 1 → flacher, chaotischer
+    Temperature: 0.9             # Primäre Zug-Auswahl-Temperatur
+                                # 0.9 bedeutet: Bevorzugung guter Züge, aber mit Varianz (menschlich)
+                                # 1.0 wäre 1:1 die Policy-Verteilung
+                                # 0.0 wäre deterministisch
+    TempEndgame: 0.35            # Ab spätem Spiel wird Temperatur reduziert (weniger Fehler)
+                                # Typisch: sauberes Endspielspielverhalten wie ein Mensch
+    TempCutoffMove: 24          # ab ca. Lichess-Zug 12 beginnt das System zu „beruhigen"
+    TempDecayMoves: 18          # über 9 Züge (Vollzüge) lineare Absenkung
+
+    # Zeitmanagement 
+    MoveOverheadMs: 50          # Sicherheitspuffer zur Vermeidung von Timeouts (in ms)
+
+    # Endspieltabellen (optional)
+    SyzygyPath: ""               # Kein Syzygy-Endspielpfad definiert
+    
+challenge:
+  concurrency: 1
+  sort_by: "best"
+  accept_bot: true
+  only_bot: false
+  max_increment: 180
+  min_increment: 0
+  max_base: 315360000
+  min_base: 0
+  variants:
+    - standard
+    - chess960
+  time_controls:
+    - bullet
+    - blitz
+    - rapid
+    - classical
+  modes:
+    - casual
+    - rated
+
+# Rate limiting settings
+abort_time: 30
+rate_limiting_delay: 10       # Erhöht auf 10, um mehr Zeit zwischen API-Aufrufen zu lassen
+move_overhead_multiplier: 1.0  # Niedrig für schnellere Züge
+disconnection_timeout: 300    # Erhöht auf 300, um länger auf eine Antwort zu warten
+api_retry_delay: 65          # 65 Sekunden warten nach einem Rate-Limit
+api_backoff_multiplier: 2     # Exponentielles Backoff bei wiederholten Fehlern
+
+retry_wait_after_rate_limit: true  # Warten Sie die volle Zeit nach einem Rate-Limit
+rate_limiting_backoff: true         # Exponentielles Backoff verwenden
