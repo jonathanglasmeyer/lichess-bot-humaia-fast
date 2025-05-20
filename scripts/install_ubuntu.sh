@@ -32,6 +32,7 @@ echo "===== Installing Leela Chess Zero (lc0) ====="
 
 # Install lc0 from Ubuntu repository if available
 if apt-cache show lc0 &>/dev/null; then
+    sudo apt-get update && apt-get install -y meson ninja-build
     sudo apt-get install -y lc0
 else
     echo "lc0 not found in repositories, installing from source..."

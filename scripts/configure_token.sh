@@ -1,5 +1,6 @@
 #!/bin/bash
 # Skript zum Erstellen der config.yml aus config_base.yml und einem Lichess API-Token
+# Automatische Erkennung des lc0-Pfads für verschiedene Plattformen
 # Verwendung: ./scripts/configure_token.sh DEIN_LICHESS_TOKEN
 
 # Farbdefinitionen für Terminal-Ausgabe
@@ -33,8 +34,64 @@ cat > config_token.yml << EOL
 token: "${TOKEN}"
 EOL
 
-# config_base.yml und config_token.yml zusammenführen
-cat config_token.yml config_base.yml > config.yml
+# Automatische Erkennung des lc0-Pfads
+echo -e "${YELLOW}Suche nach lc0-Installation...${NC}"
+LC0_PATH=""
+
+# Verschiedene mögliche Pfade prüfen
+POSSIBLE_PATHS=(
+    # System-Installationspfade
+    "/usr/bin"
+    "/usr/local/bin"
+    "/opt/homebrew/bin"
+    "/usr/games"
+    # Aus Quellcode gebaute lc0-Versionen
+    "$(pwd)/lc0/build/release"
+    "/root/lichess-bot/lc0/build/release"
+    "$HOME/lichess-bot/lc0/build/release"
+)
+
+for path in "${POSSIBLE_PATHS[@]}"; do
+    if [ -f "$path/lc0" ]; then
+        LC0_PATH="$path"
+        echo -e "${GREEN}lc0 gefunden in: $LC0_PATH${NC}"
+        break
+    fi
+done
+
+# Wenn lc0 nicht gefunden wurde, nach which suchen
+if [ -z "$LC0_PATH" ]; then
+    LC0_WHICH=$(which lc0 2>/dev/null)
+    if [ -n "$LC0_WHICH" ]; then
+        LC0_PATH=$(dirname "$LC0_WHICH")
+        echo -e "${GREEN}lc0 gefunden in: $LC0_PATH${NC}"
+    fi
+fi
+
+# Wenn immer noch nicht gefunden, Benutzer fragen
+if [ -z "$LC0_PATH" ]; then
+    echo -e "${YELLOW}lc0 konnte nicht automatisch gefunden werden.${NC}"
+    read -p "Bitte gib den Pfad zum lc0-Verzeichnis ein (z.B. /usr/bin): " LC0_PATH
+    
+    if [ ! -f "$LC0_PATH/lc0" ]; then
+        echo -e "${RED}Warnung: lc0 wurde nicht in $LC0_PATH gefunden!${NC}"
+        echo -e "Bitte installiere lc0 oder gib den korrekten Pfad an."
+        read -p "Trotzdem fortfahren? (j/n): " CONTINUE
+        if [[ ! $CONTINUE =~ ^[Jj]$ ]]; then
+            echo -e "${RED}Abbruch.${NC}"
+            exit 1
+        fi
+    fi
+fi
+
+# Erstelle temporäre Konfigurationsdatei mit ersetztem Pfad
+cat config_base.yml | sed "s|__LC0_PATH__|$LC0_PATH|g" > config_base_temp.yml
+
+# config_token.yml und die modifizierte config_base.yml zusammenführen
+cat config_token.yml config_base_temp.yml > config.yml
+
+# Temporäre Datei entfernen
+rm config_base_temp.yml
 
 echo -e "${GREEN}config.yml erfolgreich erstellt!${NC}"
 echo -e "Dein Token wurde in config_token.yml gespeichert (diese Datei ist in .gitignore ausgeschlossen)"

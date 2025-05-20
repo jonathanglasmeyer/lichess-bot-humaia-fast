@@ -4,7 +4,7 @@
 url: "https://lichess.org/"
 
 engine:
-  dir: "/opt/homebrew/bin" # Für Ubuntu: Pfad entsprechend anpassen, z.B. "/usr/bin" oder "/usr/local/bin" 
+  dir: "__LC0_PATH__" # Wird automatisch durch configure_token.sh ersetzt
   name: "lc0"
   working_dir: "./"  # Relativ zum Repository-Wurzelverzeichnis
   protocol: "uci"
